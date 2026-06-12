@@ -1,3 +1,4 @@
+import os
 # -*- mode: python -*-
 # Copyright 2023 Andrea Righi
 
@@ -47,6 +48,14 @@ class Spinner:
 
     def __init__(self, message=""):
         self.message = message
+        self.spin_info = os.environ.get("VNG_SPINNER_INFO", "")
+        self.spinner_width = 3
+        if self.spin_info:
+            import re
+            m = re.match(r"^(\d+):(.*)$", self.spin_info)
+            if m:
+                self.spinner_width = int(m.group(1))
+                self.spin_info = m.group(2)
         self.spinner_str = "▁▂▃▄▅▆▇██▇▆▅▄▃▂▁"
         self.pos = 0
 
@@ -99,7 +108,8 @@ class Spinner:
         self.pos = (self.pos + 1) % len(self.spinner_str)
         spinner = self.spinner_str[self.pos :] + self.spinner_str[: self.pos]
         delta_t = int(time.time()) - self.start_time
-        header = f"{spinner[:3]} {self.message} ({delta_t} sec)\033[?25l"
+        info = f" [{self.spin_info}]" if self.spin_info else ""
+        header = f"{spinner[:self.spinner_width]} {self.message}{info} ({delta_t} sec)\033[?25l"
         spacer = f"\r{' ' * len(header)}\r"
 
         stdout = self.original_streams["stdout"]
